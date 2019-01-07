@@ -13,7 +13,17 @@ public interface Engine {
 	
 	void unregisterPlugin(Plugin<?, ?, ?> plugin);
 	
+	void registerMessageMapper(MessageMapper<?> messageMapper);
+	
+	void unregisterMessageMapper(MessageMapper<?> messageMapper);
+	
 	void registerReducer(Reducer reducer);
 	
-	void handle(MessageEnvelope messageEnvelope, MessageContext ctx);
+	<T> void handle(T message, String format, MessageContext ctx);
+	
+	<T> void registerListener(MessageListener<T> listener, String format);
+	
+	<T> void unregisterListener(MessageListener<T> listener, String format);
+	
+	MessagePluginResolver pluginResolver();
 }

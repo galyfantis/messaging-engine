@@ -1,5 +1,8 @@
 package org.gal.messaging.engine.core;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -10,23 +13,19 @@ import org.gal.messaging.engine.api.MessageContext;
 import org.gal.messaging.engine.api.Plugin;
 import org.gal.messaging.engine.api.PluginContext;
 import org.gal.messaging.engine.api.StateUpdateMessage;
-import org.gal.messaging.engine.core.api.MessageDispatcher;
 import org.gal.messaging.engine.core.api.MessageEnvelope;
 import org.gal.messaging.engine.core.api.MessageHeader;
 import org.gal.messaging.engine.core.api.Reducer;
 
 public class StateUpdateReducer implements Reducer {
 	
-private final MessageDispatcher messagingDispatcher;
-
 	private final StateStore<String, GlobalState> globalStateStore;
 	
 	private final StateStore<InstanceStateStoreKey, InstanceState> stateStore;
 	
-	StateUpdateReducer(MessageDispatcher messagingDispatcher,
+	StateUpdateReducer(
 			StateStore<String, GlobalState> globalStateStore,
 			StateStore<InstanceStateStoreKey, InstanceState> stateStore) {
-		this.messagingDispatcher = messagingDispatcher;
 		this.globalStateStore = globalStateStore;
 		this.stateStore = stateStore;
 	}
@@ -37,8 +36,10 @@ private final MessageDispatcher messagingDispatcher;
 	}
 
 	@Override
-	public <M extends Message, S extends InstanceState, G extends GlobalState> void reduce(Plugin<M, S, G> plugin,
+	public <M extends Message, S extends InstanceState, G extends GlobalState> Collection<MessageEnvelope> reduce(Plugin<M, S, G> plugin,
 			MessageEnvelope messageEnvelope, MessageContext ctx, PluginContext<M> context) {
+		
+		List<MessageEnvelope> feedback = new ArrayList<>();
 		
 		StateUpdateMessage stateUpdateMessage = StateUpdateMessage.class.cast(messageEnvelope.payload());
 		InstanceStateStoreKey instanceStateStoreKey = InstanceStateStoreKey.of(plugin.name(), stateUpdateMessage.instance());
@@ -48,7 +49,7 @@ private final MessageDispatcher messagingDispatcher;
 		
 		// return if stateUpdateMessage is obsolete
 		if (currentState.version() > stateUpdateMessage.version()) {
-			return;
+			return feedback;
 		}
 
 		G currentGlobalState = globalStateStore.lookup(plugin.name())
@@ -74,7 +75,9 @@ private final MessageDispatcher messagingDispatcher;
 													.build();
 					return MessageEnvelope.of(h, msg);
 				}) 
-				.forEach(msg -> messagingDispatcher.dispatch(msg, ctx));
+				.forEach(feedback::add);
+		
+		return feedback;
 		
 	}
 

@@ -24,4 +24,8 @@ public interface Plugin<M extends Message, S extends InstanceState, G extends Gl
 	
 	List<M> sideEffects(S currentState, G previousGlobalState, G currentGlobalState, MessageContext ctx, PluginContext<M> context);
 	
+	M deserialize(String messageAsString, Class<? extends M> clazz);
+	
+	String serialize(M message);
+	
 }
