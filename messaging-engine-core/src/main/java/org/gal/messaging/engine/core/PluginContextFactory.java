@@ -1,7 +1,9 @@
 package org.gal.messaging.engine.core;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.BiConsumer;
 
 import org.gal.messaging.engine.api.Message;
 import org.gal.messaging.engine.api.Messaging;
@@ -11,12 +13,13 @@ import org.gal.messaging.engine.api.Scheduling;
 import org.gal.messaging.engine.core.api.MessageDispatcher;
 import org.gal.messaging.engine.core.api.MessageEnvelope;
 import org.gal.messaging.engine.core.api.MessageHeader;
-import org.gal.messaging.engine.core.api.MessagingPlugin;
 
 class PluginContextFactory {
 	
 	public static <M extends Message> PluginContext<M> createPluginContext(MessageEnvelope currentMessage,
-			Plugin<M, ?, ?> plugin, MessagingPlugin<?> messagingPlugin, MessageDispatcher messagingDispatcher,
+			Plugin<M, ?, ?> plugin,
+			BiConsumer<MessageEnvelope, List<String>> messageSender, 
+			MessageDispatcher messagingDispatcher,
 			ScheduledExecutorService scheduledExecutorService) {
 		
 		Messaging<M> messaging = (message, recipients) -> {
@@ -27,7 +30,7 @@ class PluginContextFactory {
 					.inResponseTo(currentMessage.header().uuid())
 					.build();
 
-			messagingPlugin.send(MessageEnvelope.of(header, message), recipients);
+			messageSender.accept(MessageEnvelope.of(header, message), recipients);
 		};
 		
 		Scheduling<M> scheduling = (message, ctx, delay, unit) -> {

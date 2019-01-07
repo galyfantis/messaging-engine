@@ -34,6 +34,11 @@
   		<artifactId>messaging-engine-demo</artifactId>
   		<version>${project.version}</version>
   	</dependency>
+  	<dependency>
+  		<groupId>org.gal.messaging</groupId>
+  		<artifactId>messaging-engine-plugin</artifactId>
+  		<version>${project.version}</version>
+  	</dependency>
   	
   	<dependency>
   		<groupId>com.fasterxml.jackson.core</groupId>

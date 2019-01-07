@@ -17,9 +17,13 @@ import org.gal.messaging.engine.api.Plugin;
 import org.gal.messaging.engine.api.PluginContext;
 import org.gal.messaging.engine.demo.ImmutableDemoGlobalState.Builder;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class DemoPlugin implements Plugin<DemoMessage, DemoState, DemoGlobalState> {
 	
-	private Map<String, Class<? extends DemoMessage>> classes = new HashMap<>();
+	private final Map<String, Class<? extends DemoMessage>> classes = new HashMap<>();
+	
+	private final ObjectMapper mapper = new ObjectMapper();
 	
 	public DemoPlugin() {
 		classes.put("test_create", DemoMsgCreateInstance.class);
@@ -122,5 +126,24 @@ public class DemoPlugin implements Plugin<DemoMessage, DemoState, DemoGlobalStat
 		
 		return Collections.emptyList();
 	}
+
+	@Override
+	public DemoMessage deserialize(String messageAsString, Class<? extends DemoMessage> clazz) {
+		try {
+			return mapper.readValue(messageAsString, clazz);
+		} catch (Exception e) {
+			throw new RuntimeException(e); // TODO
+		}
+	}
+	
+	@Override
+	public String serialize(DemoMessage message) {
+		try {
+			return mapper.writeValueAsString(message);
+		} catch (Exception e) {
+			throw new RuntimeException(e); // TODO
+		}
+	}
+
 
 }

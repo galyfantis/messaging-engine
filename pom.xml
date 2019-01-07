@@ -1,5 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.gal.messaging</groupId>
@@ -23,9 +23,9 @@
   	<module>messaging-engine-api</module>
   	<module>messaging-engine-core-api</module>
   	<module>messaging-engine-utils</module>
-  	<module>messaging-engine-messaging</module>
   	<module>messaging-engine-core</module>
   	<module>messaging-engine-demo</module>
+    <module>messaging-engine-plugin</module>
   	<module>messaging-engine-dist</module>
   </modules>
   

@@ -1,6 +1,7 @@
 package org.gal.messaging.engine.core;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -13,20 +14,16 @@ import org.gal.messaging.engine.api.MessageContext;
 import org.gal.messaging.engine.api.Plugin;
 import org.gal.messaging.engine.api.PluginContext;
 import org.gal.messaging.engine.api.StateUpdateMessage;
-import org.gal.messaging.engine.core.api.MessageDispatcher;
 import org.gal.messaging.engine.core.api.MessageEnvelope;
 import org.gal.messaging.engine.core.api.MessageHeader;
 import org.gal.messaging.engine.core.api.Reducer;
 
 public class InstanceMessageReducer implements Reducer {
 	
-	private final MessageDispatcher messagingDispatcher;
-	
 	private final StateStore<InstanceStateStoreKey, InstanceState> stateStore;
 
-	InstanceMessageReducer(MessageDispatcher messagingDispatcher,
+	InstanceMessageReducer(
 			StateStore<InstanceStateStoreKey, InstanceState> stateStore) {
-		this.messagingDispatcher = messagingDispatcher;
 		this.stateStore = stateStore;
 	}
 
@@ -36,8 +33,10 @@ public class InstanceMessageReducer implements Reducer {
 	}
 
 	@Override
-	public <M extends Message, S extends InstanceState, G extends GlobalState> void reduce(Plugin<M, S, G> plugin,
+	public <M extends Message, S extends InstanceState, G extends GlobalState> Collection<MessageEnvelope> reduce(Plugin<M, S, G> plugin,
 			MessageEnvelope messageEnvelope, MessageContext ctx, PluginContext<M> context) {
+		
+		List<MessageEnvelope> feedback = new ArrayList<>();
 		
 		M m = plugin.messageClass(messageEnvelope.header().type()).cast(messageEnvelope.payload());
 		
@@ -69,7 +68,7 @@ public class InstanceMessageReducer implements Reducer {
 							.inResponseTo(messageEnvelope.header().uuid())
 							.build();
 					
-					messagingDispatcher.dispatch(MessageEnvelope.of(header, stateUpdateMessage), ctx);
+					feedback.add(MessageEnvelope.of(header, stateUpdateMessage));
 				});
 			
 			sideEffects.addAll(plugin.sideEffects(m, currentState, newState, ctx, context));
@@ -89,8 +88,9 @@ public class InstanceMessageReducer implements Reducer {
 												.build();
 				return MessageEnvelope.of(h, msg);
 			}) 
-			.forEach(msg -> messagingDispatcher.dispatch(msg, ctx));
+			.forEach(feedback::add);
 		
+		return feedback;
 	}
 
 }
